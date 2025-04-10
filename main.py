@@ -3,12 +3,12 @@ from pydantic import BaseModel
 from bs4 import BeautifulSoup
 from googlesearch import search
 import requests
-from openai import OpenAI
 import os
+from openai import OpenAI
 
 app = FastAPI()
 
-# Initialiseer OpenAI client
+# OpenAI client aanmaken
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 class VraagInput(BaseModel):
@@ -34,7 +34,7 @@ def afas_help(vraag_input: VraagInput):
 
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
             "Accept-Language": "nl,en-US;q=0.7,en;q=0.3",
             "Connection": "keep-alive"
         }
@@ -51,7 +51,7 @@ def afas_help(vraag_input: VraagInput):
             print("[WARN] Geen tekst gevonden op pagina.")
             raise HTTPException(status_code=500, detail="Lege pagina")
 
-        print(f"[INFO] Eerste 300 tekens AFAS Help:\n{tekst[:300]}")
+        print(f"[INFO] Eerste 300 tekens van AFAS Help:\n{tekst[:300]}")
 
         prompt = f"""
 Je bent een AFAS-expert. Gebruik onderstaande AFAS Help-tekst om de gebruikersvraag te beantwoorden:
@@ -65,7 +65,7 @@ Vraag:
 {vraag}
 """
 
-        print("[INFO] Stuur prompt naar OpenAI...")
+        print("[INFO] Verstuur prompt naar OpenAI...")
         antwoord = client.chat.completions.create(
             model="gpt-4",
             messages=[
