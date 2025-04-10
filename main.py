@@ -3,14 +3,13 @@ from pydantic import BaseModel
 from bs4 import BeautifulSoup
 from googlesearch import search
 import requests
-import openai
+from openai import OpenAI
 import os
 
 app = FastAPI()
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
-if not openai.api_key:
-    raise RuntimeError("OPENAI_API_KEY niet gevonden in omgeving.")
+# Initialiseer OpenAI client
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 class VraagInput(BaseModel):
     vraag: str
@@ -33,23 +32,16 @@ def afas_help(vraag_input: VraagInput):
         url = resultaten[0]
         print(f"[INFO] Gekozen URL: {url}")
 
-        # 🔧 Realistische browserheaders
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
             "Accept-Language": "nl,en-US;q=0.7,en;q=0.3",
-            "Accept-Encoding": "gzip, deflate, br",
-            "Connection": "keep-alive",
-            "Upgrade-Insecure-Requests": "1",
-            "Sec-Fetch-Dest": "document",
-            "Sec-Fetch-Mode": "navigate",
-            "Sec-Fetch-Site": "none",
-            "Sec-Fetch-User": "?1"
+            "Connection": "keep-alive"
         }
 
         pagina = requests.get(url, headers=headers, timeout=10)
         if pagina.status_code != 200:
-            print(f"[ERROR] Statuscode {pagina.status_code} ontvangen bij ophalen.")
+            print(f"[ERROR] Statuscode {pagina.status_code} ontvangen.")
             raise HTTPException(status_code=502, detail="AFAS-pagina niet bereikbaar")
 
         soup = BeautifulSoup(pagina.text, 'html.parser')
@@ -74,7 +66,7 @@ Vraag:
 """
 
         print("[INFO] Stuur prompt naar OpenAI...")
-        antwoord = openai.ChatCompletion.create(
+        antwoord = client.chat.completions.create(
             model="gpt-4",
             messages=[
                 {"role": "system", "content": "Je bent een behulpzame AFAS-expert."},
@@ -82,7 +74,7 @@ Vraag:
             ]
         )
 
-        resultaat = antwoord['choices'][0]['message']['content']
+        resultaat = antwoord.choices[0].message.content
         print(f"[INFO] Antwoord gegenereerd:\n{resultaat[:300]}")
         return {"antwoord": resultaat}
 
