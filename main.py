@@ -76,4 +76,4 @@ Vraag:
         print(f"[INFO] OpenAI antwoord gegenereerd (eerste 300 tekens): {resultaat[:300]}")
         return {"antwoord": resultaat}
 
-    except Exception as e
+    except Exception as e:
