@@ -77,3 +77,6 @@ Vraag:
         return {"antwoord": resultaat}
 
     except Exception as e:
+            print(f"[FOUT] Er ging iets mis: {str(e)}")
+            raise HTTPException(status_code=500, detail=str(e))
+
